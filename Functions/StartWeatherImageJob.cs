@@ -23,7 +23,7 @@ namespace WeatherImage.Functions.StartWeatherImageJob
         }
 
         [Function("StartWeatherImageJob")]
-        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "start")] HttpRequestData req)
+        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "start-weather-image-job")] HttpRequestData req)
         {
             _logger.LogInformation("Starting weather image job.");
 
