@@ -1,16 +1,16 @@
 using System;
-using System.Drawing;
-using System.Drawing.Imaging;
+using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using Azure.Storage.Queues.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using WeatherImage.Models;
-using WeatherImage.Utilities.ImageEditor;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using WeatherImage.Models;
+using WeatherImage.Services;
+using WeatherImage.Utilities.ImageEditor;
 
 namespace WeatherImage.Functions.ProcessImage
 {
@@ -18,11 +18,13 @@ namespace WeatherImage.Functions.ProcessImage
     {
         private readonly ILogger<ProcessWeatherImage> _logger;
         private readonly BlobServiceClient _blobServiceClient;
+        private readonly UnsplashImageService _unsplashImageService;
 
-        public ProcessWeatherImage(ILogger<ProcessWeatherImage> logger, BlobServiceClient blobServiceClient)
+        public ProcessWeatherImage(ILogger<ProcessWeatherImage> logger, BlobServiceClient blobServiceClient, UnsplashImageService unsplashImageService)
         {
             _logger = logger;
             _blobServiceClient = blobServiceClient;
+            _unsplashImageService = unsplashImageService;
         }
 
         [Function(nameof(ProcessWeatherImage))]
@@ -40,13 +42,7 @@ namespace WeatherImage.Functions.ProcessImage
                     return;
                 }
 
-                // Log or process the weather data (for example purposes)
-                // _logger.LogInformation($"Job ID: {jobData.JobId}");
-                // _logger.LogInformation($"Station Name: {jobData.Station.Name}");
-                // _logger.LogInformation($"Temperature: {jobData.Station.Temperature}°C");
-
                 await GenerateWeatherImageAsync(jobData.Station);
-
             }
             catch (Exception ex)
             {
@@ -54,17 +50,14 @@ namespace WeatherImage.Functions.ProcessImage
             }
         }
 
-        // Generate and upload a weather image
         private async Task GenerateWeatherImageAsync(StationMeasurement stationData)
         {
             _logger.LogInformation($"Generating weather image for station: {stationData.StationName}");
 
-            // Create a blank image or load a base image file
-            using var blankImage = new Image<Rgba32>(500, 300, new Rgba32(173, 216, 230)); // Light blue background
-            using var imageStream = new MemoryStream();
-            await blankImage.SaveAsPngAsync(imageStream);
-            imageStream.Position = 0;
-
+            // Fetch an Unsplash image to use as the background
+            var imageUrl = await _unsplashImageService.GetRandomImageUrlAsync("sky");
+            using var imageStream = await new HttpClient().GetStreamAsync(imageUrl);
+            
             // Prepare text overlays
             var textOverlays = new[]
             {
@@ -72,10 +65,10 @@ namespace WeatherImage.Functions.ProcessImage
                 ($"Temperature: {stationData.Temperature}°C", (10f, 80f), 20, "#000000")
             };
 
-            // Add text to the image using ImageHelper
+            // Use ImageHelper to add text to the background image
             using var finalImageStream = ImageEditor.AddTextToImage(imageStream, textOverlays);
 
-            // Upload the modified image to Azure Blob Storage
+            // Upload the final image to Azure Blob Storage
             string blobContainerName = "weather-images";
             string blobName = $"{stationData.StationName.Replace(" ", "_")}_{Guid.NewGuid()}.png";
 
