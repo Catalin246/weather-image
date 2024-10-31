@@ -23,7 +23,7 @@ namespace WeatherImage.Functions.StartWeatherImageJob
         }
 
         [Function("StartWeatherImageJob")]
-        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "start-weather-image-job")] HttpRequestData req)
+        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "start")] HttpRequestData req)
         {
             _logger.LogInformation("Starting weather image job.");
 
@@ -48,7 +48,9 @@ namespace WeatherImage.Functions.StartWeatherImageJob
 
             // Return a success response with job ID
             var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
-            await response.WriteAsJsonAsync(new { jobId, statusUrl = $"http://localhost:7071//api/job/status/{jobId}" });
+            // TO DO
+            // Add the status of the of the jobs (jobs are in progress)
+            await response.WriteAsJsonAsync(new { jobId, statusUrl = $"http://localhost:7071/api/images" });
             return response;
         }
     }

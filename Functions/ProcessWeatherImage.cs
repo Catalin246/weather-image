@@ -69,7 +69,7 @@ namespace WeatherImage.Functions.ProcessImage
             using var finalImageStream = ImageEditor.AddTextToImage(imageStream, textOverlays);
 
             // Upload the final image to Azure Blob Storage
-            string blobContainerName = "weather-images";
+            string blobContainerName = "weather-image-public";
             string blobName = $"{stationData.StationName.Replace(" ", "_")}_{Guid.NewGuid()}.png";
 
             var blobContainerClient = _blobServiceClient.GetBlobContainerClient(blobContainerName);

@@ -10,9 +10,9 @@ o	Employ QueueTrigger to process the job in the background so the initial call s
     	Employ Blob Storage to store all generated images and to expose the files. (done)
     	Employ Buienrader api to get weather station data (done)
         	https://data.buienradar.nl/2.0/feed/json
-    	Employ any public api for retrieving an image to write the weather data on. (done)
+    	Employ any public api for retrieving an image to write the weather data on. (done) 
         	e.g. https://unsplash.com/developers
-o	Expose a publicly accessible API for fetching the generated images using HttpTriggers.
+o	Expose a publicly accessible API for fetching the generated images using HttpTriggers.(done) images url not accessible
 
 o	Provide HTTP files as API documentation.
 o	Create a fitting Bicep template (include the queues as well).
