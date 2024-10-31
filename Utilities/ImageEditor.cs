@@ -1,35 +1,53 @@
-// using System.Drawing;
-// using System.Drawing.Imaging;
-// using System.IO;
-// using WeatherImage.Models;
+using SixLabors.Fonts;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Drawing.Processing;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using System;
+using System.IO;
 
-// namespace WeatherImage.Utilities
-// {
-//     public static class ImageEditor
-//     {
-//         public static Stream CreateWeatherImage(string backgroundImageUrl, StationMeasurement stationData)
-//         {
-//             using (var client = new HttpClient())
-//             using (var backgroundImageStream = client.GetStreamAsync(backgroundImageUrl).Result)
-//             using (var bitmap = new Bitmap(backgroundImageStream))
-//             {
-//                 using (var graphics = Graphics.FromImage(bitmap))
-//                 {
-//                     var font = new Font("Arial", 24, FontStyle.Bold);
-//                     var brush = new SolidBrush(Color.White);
-//                     var point = new PointF(10, 10);
+namespace WeatherImage.Utilities.ImageEditor
+{
+    public class ImageEditor
+    {
+        /// <summary>
+        /// Adds text overlays to an image and returns a stream with the updated image.
+        /// </summary>
+        /// <param name="imageStream">Stream of the base image to modify.</param>
+        /// <param name="texts">Array of tuples containing text, position, font size, and color.</param>
+        /// <returns>A stream containing the modified image with text overlays.</returns>
+        public static Stream AddTextToImage(Stream imageStream, params (string text, (float x, float y) position, int fontSize, string colorHex)[] texts)
+        {
+            var memoryStream = new MemoryStream();
 
-//                     string weatherText = $"Station: {stationData.Name}\n" +
-//                                          $"Temperature: {stationData.Temperature} °C";
+            // Load the image from the provided stream
+            var image = Image.Load(imageStream);
 
-//                     graphics.DrawString(weatherText, font, brush, point);
-//                 }
+            // Clone and modify the image to add text overlays
+            image.Clone(img =>
+            {
+                var textGraphicsOptions = new TextGraphicsOptions()
+                {
+                    TextOptions = {
+                        WrapTextWidth = image.Width - 10 // Set a wrap width slightly less than the image width
+                    }
+                };
 
-//                 var output = new MemoryStream();
-//                 bitmap.Save(output, ImageFormat.Png);
-//                 output.Position = 0; // Reset stream position for reading
-//                 return output;
-//             }
-//         }
-//     }
-// }
+                foreach (var (text, (x, y), fontSize, colorHex) in texts)
+                {
+                    // Define font and color
+                    var font = SystemFonts.CreateFont("Verdana", fontSize);
+                    var color = Rgba32.ParseHex(colorHex);
+
+                    // Draw the text onto the image at the specified location
+                    img.DrawText(textGraphicsOptions, text, font, color, new PointF(x, y));
+                }
+            })
+            .SaveAsPng(memoryStream); // Save the modified image to the memory stream
+
+            memoryStream.Position = 0; // Reset the stream position to the beginning
+
+            return memoryStream;
+        }
+    }
+}

@@ -48,7 +48,7 @@ namespace WeatherImage.Functions.StartWeatherImageJob
 
             // Return a success response with job ID
             var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
-            await response.WriteAsJsonAsync(new { jobId, statusUrl = $"/api/job/status/{jobId}" });
+            await response.WriteAsJsonAsync(new { jobId, statusUrl = $"http://localhost:7071//api/job/status/{jobId}" });
             return response;
         }
     }

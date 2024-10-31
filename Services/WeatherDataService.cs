@@ -25,7 +25,7 @@ namespace WeatherImage.Services
             try
             {
                 // Fetch data from Buienradar API
-                var apiData = await _httpClient.GetFromJsonAsync<BuienRadarApiResponse>("https://data.buienradar.nl/2.0/feed/json");
+                var apiData = await _httpClient.GetFromJsonAsync<WeatherData>("https://data.buienradar.nl/2.0/feed/json");
 
                 if (apiData?.Actual?.StationMeasurements == null)
                 {
@@ -41,7 +41,7 @@ namespace WeatherImage.Services
                         StationMeasurements = apiData.Actual.StationMeasurements
                             .Select(station => new StationMeasurement
                             {
-                                Name = station.StationName,
+                                StationName = station.StationName,
                                 Temperature = station.Temperature ?? 0
                             })
                             .ToList()

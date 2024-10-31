@@ -1,3 +1,4 @@
+using Azure.Storage.Blobs;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +20,8 @@ var host = new HostBuilder()
         services.AddHttpClient();
         services.AddSingleton<WeatherDataService>();
         services.AddSingleton<QueueWriterService>();
+        services.AddSingleton(new BlobServiceClient(Environment.GetEnvironmentVariable("AzureWebJobsStorage")));
+
     })
     .Build();
 
