@@ -1,7 +1,9 @@
 using System;
 using System.IO;
+using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Azure.Data.Tables;
 using Azure.Storage.Blobs;
 using Azure.Storage.Queues.Models;
 using Microsoft.Azure.Functions.Worker;
@@ -19,12 +21,18 @@ namespace WeatherImage.Functions.ProcessImage
         private readonly ILogger<ProcessWeatherImage> _logger;
         private readonly BlobServiceClient _blobServiceClient;
         private readonly UnsplashImageService _unsplashImageService;
+        private readonly TableClient _tableClient;
 
-        public ProcessWeatherImage(ILogger<ProcessWeatherImage> logger, BlobServiceClient blobServiceClient, UnsplashImageService unsplashImageService)
+        public ProcessWeatherImage(
+            ILogger<ProcessWeatherImage> logger,
+            BlobServiceClient blobServiceClient,
+            UnsplashImageService unsplashImageService,
+            TableClient tableClient)
         {
             _logger = logger;
             _blobServiceClient = blobServiceClient;
             _unsplashImageService = unsplashImageService;
+            _tableClient = tableClient;
         }
 
         [Function(nameof(ProcessWeatherImage))]
@@ -42,7 +50,11 @@ namespace WeatherImage.Functions.ProcessImage
                     return;
                 }
 
-                await GenerateWeatherImageAsync(jobData.Station);
+                // Update Table Storage with job status as "In Progress"
+                await UpdateJobStatusAsync(jobData.JobId, "In Progress");
+
+                // Update Table Storage with job status as "Completed"
+                await UpdateJobStatusAsync(jobData.JobId, "Completed");
             }
             catch (Exception ex)
             {
@@ -50,18 +62,18 @@ namespace WeatherImage.Functions.ProcessImage
             }
         }
 
-        private async Task GenerateWeatherImageAsync(StationMeasurement stationData)
+        private async Task<string> GenerateWeatherImageAsync(StationMeasurement stationData)
         {
             _logger.LogInformation($"Generating weather image for station: {stationData.StationName}");
 
             // Fetch an Unsplash image to use as the background
             var imageUrl = await _unsplashImageService.GetRandomImageUrlAsync("sky");
             using var imageStream = await new HttpClient().GetStreamAsync(imageUrl);
-            
+
             // Prepare text overlays
             var textOverlays = new[]
             {
-                ($"Station: {stationData.StationName}", (10f, 40f), 20, "#000000"), // Black text
+                ($"Station: {stationData.StationName}", (10f, 40f), 20, "#000000"),
                 ($"Temperature: {stationData.Temperature}°C", (10f, 80f), 20, "#000000")
             };
 
@@ -79,6 +91,18 @@ namespace WeatherImage.Functions.ProcessImage
             await blobClient.UploadAsync(finalImageStream, overwrite: true);
 
             _logger.LogInformation($"Image uploaded successfully as {blobName} in container {blobContainerName}.");
+            return blobClient.Uri.ToString(); 
+        }
+
+        private async Task UpdateJobStatusAsync(string jobId, string status)
+        {
+            var jobStatusEntity = new JobStatusEntity(jobId)
+            {
+                Status = status,
+            };
+
+            await _tableClient.UpsertEntityAsync(jobStatusEntity);
+            _logger.LogInformation($"Job status for Job ID {jobId} updated to '{status}'.");
         }
     }
 }

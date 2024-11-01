@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Azure.Data.Tables;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.Azure.Functions.Worker;
@@ -7,25 +8,38 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Text.Json;
+using WeatherImage.Models;
 
-namespace WeatherImage.Functions.GetImages
+namespace WeatherImage.Functions.JobStatus
 {
-    public class WeatherImages
+    public class JobStatus
     {
         private readonly BlobServiceClient _blobServiceClient;
-        private readonly ILogger<WeatherImages> _logger;
+        private readonly ILogger<JobStatus> _logger;
+        private readonly TableClient _tableClient;
 
-        public WeatherImages(BlobServiceClient blobServiceClient, ILogger<WeatherImages> logger)
+        public JobStatus(BlobServiceClient blobServiceClient, TableClient tableClient, ILogger<JobStatus> logger)
         {
             _blobServiceClient = blobServiceClient;
+            _tableClient = tableClient;
             _logger = logger;
         }
 
-        [Function("WeatherImages")]
+        [Function("JobStatus")]
         public async Task<HttpResponseData> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "images")] HttpRequestData req)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "status/{jobId}")] HttpRequestData req, string jobId)
         {
             _logger.LogInformation("Fetching list of weather images.");
+
+            // Retrieve job status from Table Storage
+            var jobStatusEntity = await _tableClient.GetEntityAsync<JobStatusEntity>("JobStatus", jobId);
+            if (jobStatusEntity == null || jobStatusEntity.Value.Status != "Completed")
+            {
+                // If job is still in progress or status is not found, return "In Progress" status
+                var inProgressResponse = req.CreateResponse(HttpStatusCode.OK);
+                await inProgressResponse.WriteStringAsync(JsonSerializer.Serialize(new { status = "In Progress" }));
+                return inProgressResponse;
+            }
 
             // Retrieve blob container
             var blobContainerClient = _blobServiceClient.GetBlobContainerClient("weather-image-public");

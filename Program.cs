@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using WeatherImage.Services;
+using Azure.Data.Tables;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication()
@@ -22,6 +23,19 @@ var host = new HostBuilder()
         services.AddSingleton<QueueWriterService>();
         services.AddSingleton<UnsplashImageService>();
         services.AddSingleton(new BlobServiceClient(Environment.GetEnvironmentVariable("AzureWebJobsStorage")));
+
+        services.AddSingleton(x =>
+        {
+            string? connectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new InvalidOperationException("AzureWebJobsStorage connection string is not set in environment variables.");
+            }
+            var tableServiceClient = new TableServiceClient(connectionString);
+            var tableClient = tableServiceClient.GetTableClient("JobStatusTable");
+            tableClient.CreateIfNotExists();
+            return tableClient;
+        });
 
     })
     .Build();
