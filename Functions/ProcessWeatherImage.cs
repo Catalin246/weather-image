@@ -53,6 +53,9 @@ namespace WeatherImage.Functions.ProcessImage
                 // Update Table Storage with job status as "In Progress"
                 await UpdateJobStatusAsync(jobData.JobId, "In Progress");
 
+                // Generate and upload the weather image
+                await GenerateWeatherImageAsync(jobData.Station);
+
                 // Update Table Storage with job status as "Completed"
                 await UpdateJobStatusAsync(jobData.JobId, "Completed");
             }
@@ -67,7 +70,7 @@ namespace WeatherImage.Functions.ProcessImage
             _logger.LogInformation($"Generating weather image for station: {stationData.StationName}");
 
             // Fetch an Unsplash image to use as the background
-            var imageUrl = await _unsplashImageService.GetRandomImageUrlAsync("sky");
+            var imageUrl = await _unsplashImageService.GetRandomImageUrlAsync("netherlands");
             using var imageStream = await new HttpClient().GetStreamAsync(imageUrl);
 
             // Prepare text overlays
