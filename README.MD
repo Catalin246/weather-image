@@ -14,8 +14,8 @@ o	Employ QueueTrigger to process the job in the background so the initial call s
         	e.g. https://unsplash.com/developers
 o	Expose a publicly accessible API for fetching the generated images using HttpTriggers.(done) - images url not accessible - all images retured instead     only the generated images (for a specific jobId)
 
-o	Provide HTTP files as API documentation.
-o	Create a fitting Bicep template (include the queues as well).
+o	Provide HTTP files as API documentation. (done)
+o	Create a fitting Bicep template (include the queues as well). (in progress)
 o	Add all files to Azure DevOps repo and add tripleinhollandccd2024@outlook.com 
 to organization and project.
 o	Create a deploy.ps1 script that publishes your code using the dotnet cli, creates the resources in azure using the Bicep template and deploys the function using the azure cli.
@@ -39,3 +39,4 @@ Extra instruction for giving me access:
 4.	If you have created your own azure devops tenant, please invite me to this as well.
 
 
+az deployment group create --resource-group WeatherImage --template-file main.bicep
