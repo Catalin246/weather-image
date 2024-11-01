@@ -1,0 +1,13 @@
+# Start Weather Image Job
+# This endpoint initializes a new weather image generation job.
+
+POST http://localhost:7071/api/start
+Content-Type: application/json
+
+# Expected Response:
+# {
+#   "jobId": "<unique-job-id>",
+#   "statusUrl": "http://localhost:7071/api/status/<unique-job-id>"
+# }
+
+###

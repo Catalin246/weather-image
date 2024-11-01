@@ -1,0 +1,21 @@
+# Job Status
+# Use this endpoint to check the status of a weather image generation job.
+# Replace {jobId} with the unique ID returned when the job was started.
+
+GET http://localhost:7071/api/status/{jobId}
+Accept: application/json
+
+# Expected Response when job is in progress:
+# {
+#   "status": "In Progress"
+# }
+
+# Expected Response when job is completed:
+# {
+#   "images": [
+#     "http://storageaccount.blob.core.windows.net/weather-image-public/image1.png",
+#     "http://storageaccount.blob.core.windows.net/weather-image-public/image2.png"
+#   ]
+# }
+
+###
