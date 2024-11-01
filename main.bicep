@@ -1,7 +1,10 @@
+@description('Location for all resources')
+param location string = resourceGroup().location
+
 // Define the storage account
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' = {
     name: 'weatherimagestorage123'
-    location: resourceGroup().location
+    location: location
     sku: {
       name: 'Standard_LRS'
     }
@@ -32,7 +35,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' = {
   // Define the Function App to run Azure Functions
   resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
     name: 'weatherImageFunctionApp${uniqueString(resourceGroup().id)}'
-    location: resourceGroup().location
+    location: location
     kind: 'functionapp'
     properties: {
       serverFarmId: functionPlan.id
@@ -50,7 +53,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' = {
   // Define the App Service Plan for the Function App (can be Consumption or Premium plan)
   resource functionPlan 'Microsoft.Web/serverfarms@2022-03-01' = {
     name: 'weatherImagePlan${uniqueString(resourceGroup().id)}'
-    location: resourceGroup().location
+    location: location
     sku: {
       name: 'Y1' // Y1 is Consumption plan, adjust if needed
       tier: 'Dynamic'
