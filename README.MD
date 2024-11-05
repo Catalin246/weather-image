@@ -45,6 +45,8 @@ TO DO
 - function app naming random
 - provide README file
 
+!! create a new unsplash app
+
 ## Deployment
 
 To deploy the application, follow these steps:
