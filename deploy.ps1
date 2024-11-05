@@ -1,35 +1,32 @@
 # Define variables
-$resourceGroupName = "WeatherImageResources"
-$location = "westeurope"  # Set location to West Europe
-$bicepFilePath = "./main.bicep"  # Path to your Bicep template file
-$functionAppName = "weatherImageFunctionApp" + (Get-Random) # Ensures unique name
-$projectPath = "./"  # Path to your .NET project (e.g., where your .csproj file is located)
+$resourceGroupName = "WeatherImageDemo"
+$location = "westeurope"  # Azure region for the resource group
+$templateFilePath = "./main.bicep"  # Path to your Bicep template file
+$appInsightsLocation = "westeurope"  # Application Insights location
+$functionAppName = "fnappoekk4niakfyi4"  # Name of the Function App
 
-# Step 1: Login to Azure
-Write-Output "Logging into Azure..."
-az login
-
-# Step 2: Create Resource Group (if it doesn’t exist)
-Write-Output "Creating resource group $resourceGroupName in $location if it does not already exist..."
+# Step 1: Create the resource group
+Write-Output "Creating resource group '$resourceGroupName' in location '$location'..."
 az group create --name $resourceGroupName --location $location
+Write-Output "Resource group '$resourceGroupName' created successfully."
 
-# Step 3: Deploy Resources using Bicep
-Write-Output "Deploying resources with Bicep template..."
-az deployment group create --resource-group $resourceGroupName --template-file $bicepFilePath --parameters location=$location
+# Step 2: Deploy resources using the Bicep template
+Write-Output "Deploying resources to resource group '$resourceGroupName' using template '$templateFilePath'..."
+az deployment group create --resource-group $resourceGroupName --template-file $templateFilePath --parameters appInsightsLocation=$appInsightsLocation
+Write-Output "Resources deployed successfully in resource group '$resourceGroupName'."
 
-# Step 4: Publish the Function App using dotnet CLI
-Write-Output "Publishing the Azure Function code using dotnet CLI..."
-dotnet publish $projectPath --configuration Release -o ./publish
+# Step 3: Check if the Function App is created
+Write-Output "Checking if Function App '$functionAppName' exists..."
+$functionAppCheck = az functionapp show --name $functionAppName --resource-group $resourceGroupName --query "name" -o tsv
 
-# Step 5: Deploy the Function App Code to Azure
-Write-Output "Deploying the function app code to Azure..."
-$zipFilePath = "./functionapp.zip"
-Compress-Archive -Path "./publish/*" -DestinationPath $zipFilePath -Force
-
-Write-Output "Deploying the function app package to Azure..."
-az functionapp deployment source config-zip --resource-group $resourceGroupName --name $functionAppName --src $zipFilePath
-
-# Step 6: Clean Up
-Write-Output "Cleaning up..."
-Remove-Item -Force -Path $zipFilePath
-Write-Output "Deployment completed successfully."
+if ($functionAppCheck -eq $functionAppName) {
+    Write-Output "Function App '$functionAppName' exists. Proceeding with deployment..."
+    
+    # Publish the Function App
+    Write-Output "Publishing Function App '$functionAppName'..."
+    func azure functionapp publish $functionAppName
+    Write-Output "Function App '$functionAppName' published successfully."
+} else {
+    Write-Output "Function App '$functionAppName' was not found in resource group '$resourceGroupName'. Please check the deployment and try again."
+    exit 1
+}

@@ -1,62 +1,116 @@
-@description('Location for all resources')
+@description('The name of the function app that you wish to create.')
+//param appName string = 'fnapp${uniqueString(resourceGroup().id)}'
+param appName string = 'fnappoekk4niakfyi4'
+
+@description('Storage Account type')
+@allowed([
+  'Standard_LRS'
+  'Standard_GRS'
+  'Standard_RAGRS'
+])
+param storageAccountType string = 'Standard_LRS'
+
+@description('Location for all resources.')
 param location string = resourceGroup().location
 
-// Define the storage account
+@description('Location for Application Insights')
+param appInsightsLocation string
+
+@description('The language worker runtime to load in the function app.')
+@allowed([
+  'node'
+  'dotnet'
+  'java'
+])
+param runtime string = 'dotnet'
+
+var functionAppName = appName
+var hostingPlanName = appName
+var applicationInsightsName = appName
+var storageAccountName = '${uniqueString(resourceGroup().id)}azfunctions'
+var functionWorkerRuntime = runtime
+var unsplashApiKey = 'udK-FklbHVhmQ-s86wOy5URlCRs6_ZBo7cqtFmnTf7g'
+
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' = {
-    name: 'weatherimagestorage123'
-    location: location
-    sku: {
-      name: 'Standard_LRS'
+  name: storageAccountName
+  location: location
+  sku: {
+    name: storageAccountType
+  }
+  kind: 'Storage'
+  properties: {
+    supportsHttpsTrafficOnly: true
+    defaultToOAuthAuthentication: true
+  }
+}
+
+resource hostingPlan 'Microsoft.Web/serverfarms@2021-03-01' = {
+  name: hostingPlanName
+  location: location
+  sku: {
+    name: 'Y1'
+    tier: 'Dynamic'
+  }
+  properties: {}
+}
+
+resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
+  name: functionAppName
+  location: location
+  kind: 'functionapp'
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    serverFarmId: hostingPlan.id
+    siteConfig: {
+      appSettings: [
+        {
+          name: 'AzureWebJobsStorage'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'
+        }
+        {
+          name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'
+        }
+        {
+          name: 'WEBSITE_CONTENTSHARE'
+          value: toLower(functionAppName)
+        }
+        {
+          name: 'FUNCTIONS_EXTENSION_VERSION'
+          value: '~4'
+        }
+        {
+          name: 'WEBSITE_NODE_DEFAULT_VERSION'
+          value: '~14'
+        }
+        {
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: applicationInsights.properties.InstrumentationKey
+        }
+        {
+          name: 'FUNCTIONS_WORKER_RUNTIME'
+          value: functionWorkerRuntime
+        }
+        {
+          name: 'UnsplashApiKey'
+          value: unsplashApiKey
+        }
+      ]
+      ftpsState: 'FtpsOnly'
+      minTlsVersion: '1.2'
     }
-    kind: 'StorageV2'
-    properties: {
-        allowBlobPublicAccess: true
-    }
+    httpsOnly: true
   }
-  
-  // Create a blob container for storing weather images
-  resource blobContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-05-01' = {
-    name: '${storageAccount.name}/default/weather-image-public'
-    properties: {
-      publicAccess: 'Blob'
-    }
+}
+
+resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
+  name: applicationInsightsName
+  location: appInsightsLocation
+  kind: 'web'
+  properties: {
+    Application_Type: 'web'
+    Request_Source: 'rest'
   }
-  
-  // Define a queue for background job processing
-  resource weatherQueue 'Microsoft.Storage/storageAccounts/queueServices/queues@2022-05-01' = {
-    name: '${storageAccount.name}/default/weather-image-queue'
-  }
-  
-  // Define a table for storing job statuses
-  resource jobStatusTable 'Microsoft.Storage/storageAccounts/tableServices/tables@2022-05-01' = {
-    name: '${storageAccount.name}/default/JobStatusTable'
-  }
-  
-  // Define the Function App to run Azure Functions
-  resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
-    name: 'weatherImageFunctionApp${uniqueString(resourceGroup().id)}'
-    location: location
-    kind: 'functionapp'
-    properties: {
-      serverFarmId: functionPlan.id
-      siteConfig: {
-        appSettings: [
-          {
-            name: 'AzureWebJobsStorage'
-            value: storageAccount.properties.primaryEndpoints.blob
-          }
-        ]
-      }
-    }
-  }
-  
-  // Define the App Service Plan for the Function App (can be Consumption or Premium plan)
-  resource functionPlan 'Microsoft.Web/serverfarms@2022-03-01' = {
-    name: 'weatherImagePlan${uniqueString(resourceGroup().id)}'
-    location: location
-    sku: {
-      name: 'Y1' // Y1 is Consumption plan, adjust if needed
-      tier: 'Dynamic'
-    }
-  }
-  
+}
