@@ -1,0 +1,60 @@
+# azure-pipelines.yml
+
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'windows-latest' 
+
+variables:
+  resourceGroupName: "WeatherImageDemo"
+  location: "westeurope"
+  templateFilePath: "$(System.DefaultWorkingDirectory)/main.bicep"
+  appInsightsLocation: "westeurope"
+  functionAppName: "fnappoekk4niakfyi4"
+
+stages:
+  - stage: Build
+    jobs:
+      - job: Build
+        steps:
+          - task: UseDotNet@2
+            inputs:
+              packageType: 'sdk'
+              version: '8.x' 
+
+          - script: dotnet build
+            displayName: 'Build project'
+
+  - stage: Deploy
+    dependsOn: Build
+    jobs:
+      - job: Deploy
+        steps:
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: '245ebd34-23fa-4b15-8938-f71c047db6f8'  
+              scriptType: 'ps'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                # Define deployment steps in PowerShell
+
+                # Clear the Console (optional)
+                cls
+
+                # Step 1: Create the resource group if it doesn't exist
+                Write-Output "Creating resource group '$env:resourceGroupName' in location '$env:location'..."
+                az group create --name $env:resourceGroupName --location $env:location
+                Write-Output "Resource group '$env:resourceGroupName' created successfully."
+
+                # Step 2: Deploy resources using the Bicep template
+                Write-Output "Deploying resources to resource group '$env:resourceGroupName' using template '$env:templateFilePath'..."
+                az deployment group create --resource-group $env:resourceGroupName --template-file $env:templateFilePath --parameters appInsightsLocation=$env:appInsightsLocation
+                Write-Output "Resources deployed successfully in resource group '$env:resourceGroupName'."
+
+                # Step 3: Publish the Function App
+                Write-Output "Publishing Function App '$env:functionAppName'..."
+                func azure functionapp publish $env:functionAppName
+                Write-Output "Function App '$env:functionAppName' published successfully."
