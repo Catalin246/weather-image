@@ -15,18 +15,7 @@ Write-Output "Deploying resources to resource group '$resourceGroupName' using t
 az deployment group create --resource-group $resourceGroupName --template-file $templateFilePath --parameters appInsightsLocation=$appInsightsLocation
 Write-Output "Resources deployed successfully in resource group '$resourceGroupName'."
 
-# Step 3: Check if the Function App is created
-Write-Output "Checking if Function App '$functionAppName' exists..."
-$functionAppCheck = az functionapp show --name $functionAppName --resource-group $resourceGroupName --query "name" -o tsv
-
-if ($functionAppCheck -eq $functionAppName) {
-    Write-Output "Function App '$functionAppName' exists. Proceeding with deployment..."
-    
-    # Publish the Function App
-    Write-Output "Publishing Function App '$functionAppName'..."
-    func azure functionapp publish $functionAppName
-    Write-Output "Function App '$functionAppName' published successfully."
-} else {
-    Write-Output "Function App '$functionAppName' was not found in resource group '$resourceGroupName'. Please check the deployment and try again."
-    exit 1
-}
+# Step 3: Publish the Function App
+# Write-Output "Publishing Function App '$functionAppName'..."
+# func azure functionapp publish $functionAppName
+# Write-Output "Function App '$functionAppName' published successfully."
