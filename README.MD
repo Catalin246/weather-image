@@ -14,13 +14,13 @@ o	Employ QueueTrigger to process the job in the background so the initial call s
         	e.g. https://unsplash.com/developers
 o	Expose a publicly accessible API for fetching the generated images using HttpTriggers.(done) - images url not accessible - all images retured instead     only the generated images (for a specific jobId)
 
-o	Provide HTTP files as API documentation. (done)
-o	Create a fitting Bicep template (include the queues as well). (in progress)
+o	Provide HTTP files as API documentation. (in progress)
+o	Create a fitting Bicep template (include the queues as well). (done)
 o	Add all files to Azure DevOps repo and add tripleinhollandccd2024@outlook.com 
 to organization and project. (in progress)
-o	Create a deploy.ps1 script that publishes your code using the dotnet cli, creates the resources in azure using the Bicep template and deploys the function using the azure cli. (in progress)
-o	Employ multiple queues one for starting the job and one for writing text on a single image.
-o	Deploy the code to azure and have a working endpoint.
+o	Create a deploy.ps1 script that publishes your code using the dotnet cli, creates the resources in azure using the Bicep template and deploys the function using the azure cli. (done)
+o	Employ multiple queues one for starting the job and one for writing text on a single image.(in progress)
+o	Deploy the code to azure and have a working endpoint.(in progress)
  
 Could
 o	Use SAS token instead of publicly accessible blob storage for fetching finished image directly from Blob.
@@ -38,12 +38,25 @@ Extra instruction for giving me access:
 3.	Add me as administrator to your project (https://dev.azure.com/{organization}/{projectName} /_settings/).
 4.	If you have created your own azure devops tenant, please invite me to this as well.
 
-
-az deployment group create --resource-group WeatherImage --template-file main.bicep
-
 TO DO
+- add http file also for production website
+- take only the images related to the job
+- 2nd request put the local url even in the production
+- function app naming random
+- provide README file
 
-run `./deploy.ps1`
+## Deployment
+
+To deploy the application, follow these steps:
+
+1. Clear the Console (Optional): Run the `cls` command to clear any previous output in the console for a clean view of the deployment process.
+   ```powershell
+   cls
+
+2. Run the Deployment Script: Execute the deployment script to publish your code, create resources in Azure using the Bicep template, and deploy the Function App.
+   ```powershell
+   ./deploy.ps1
+
 
 
 

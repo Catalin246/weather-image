@@ -16,6 +16,6 @@ az deployment group create --resource-group $resourceGroupName --template-file $
 Write-Output "Resources deployed successfully in resource group '$resourceGroupName'."
 
 # Step 3: Publish the Function App
-# Write-Output "Publishing Function App '$functionAppName'..."
-# func azure functionapp publish $functionAppName
-# Write-Output "Function App '$functionAppName' published successfully."
+Write-Output "Publishing Function App '$functionAppName'..."
+func azure functionapp publish $functionAppName
+Write-Output "Function App '$functionAppName' published successfully."
