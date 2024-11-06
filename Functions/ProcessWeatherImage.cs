@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Azure.Data.Tables;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Azure.Storage.Queues.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
@@ -54,7 +55,7 @@ namespace WeatherImage.Functions.ProcessImage
                 await UpdateJobStatusAsync(jobData.JobId, "In Progress");
 
                 // Generate and upload the weather image
-                await GenerateWeatherImageAsync(jobData.Station);
+                await GenerateWeatherImageAsync(jobData.Station, jobData.JobId);
 
                 // Update Table Storage with job status as "Completed"
                 await UpdateJobStatusAsync(jobData.JobId, "Completed");
@@ -65,7 +66,7 @@ namespace WeatherImage.Functions.ProcessImage
             }
         }
 
-        private async Task<string> GenerateWeatherImageAsync(StationMeasurement stationData)
+        private async Task<string> GenerateWeatherImageAsync(StationMeasurement stationData, string jobId)
         {
             _logger.LogInformation($"Generating weather image for station: {stationData.StationName}");
 
@@ -91,7 +92,16 @@ namespace WeatherImage.Functions.ProcessImage
             await blobContainerClient.CreateIfNotExistsAsync();
 
             var blobClient = blobContainerClient.GetBlobClient(blobName);
-            await blobClient.UploadAsync(finalImageStream, overwrite: true);
+
+            // Set metadata including the jobId
+            var metadata = new Dictionary<string, string> { { "jobId", jobId } };
+            
+            // Upload the final image with metadata
+            await blobClient.UploadAsync(finalImageStream, new BlobUploadOptions
+            {
+                Metadata = metadata,
+                HttpHeaders = new BlobHttpHeaders { ContentType = "image/png" }
+            });
 
             _logger.LogInformation($"Image uploaded successfully as {blobName} in container {blobContainerName}.");
             return blobClient.Uri.ToString(); 

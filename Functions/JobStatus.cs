@@ -29,7 +29,7 @@ namespace WeatherImage.Functions.JobStatus
         public async Task<HttpResponseData> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "status/{jobId}")] HttpRequestData req, string jobId)
         {
-            _logger.LogInformation("Fetching list of weather images.");
+            _logger.LogInformation("Fetching list of weather images for jobId: {jobId}", jobId);
 
             // Retrieve job status from Table Storage
             var jobStatusEntity = await _tableClient.GetEntityAsync<JobStatusEntity>("JobStatus", jobId);
@@ -44,12 +44,20 @@ namespace WeatherImage.Functions.JobStatus
             // Retrieve blob container
             var blobContainerClient = _blobServiceClient.GetBlobContainerClient("weather-image-public");
 
-            // List blobs in container
+            // List blobs in container and filter by jobId
             var imageUrls = new List<string>();
             await foreach (BlobItem blobItem in blobContainerClient.GetBlobsAsync())
             {
                 var blobClient = blobContainerClient.GetBlobClient(blobItem.Name);
-                imageUrls.Add(blobClient.Uri.ToString());
+
+                // Retrieve blob properties to access metadata
+                var blobProperties = await blobClient.GetPropertiesAsync();
+
+                // Check if the blob's metadata contains the correct jobId
+                if (blobProperties.Value.Metadata.TryGetValue("jobId", out var blobJobId) && blobJobId == jobId)
+                {
+                    imageUrls.Add(blobClient.Uri.ToString());
+                }
             }
 
             // Return list of image URLs as JSON response

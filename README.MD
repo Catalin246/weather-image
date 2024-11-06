@@ -38,8 +38,6 @@ Extra instruction for giving me access:
 4.	If you have created your own azure devops tenant, please invite me to this as well.
 
 TO DO
-- return only the generated images (for a specific jobId)
-- function app naming random
 - provide README file
 - !! create a new unsplash app
 
