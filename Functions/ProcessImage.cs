@@ -17,18 +17,19 @@ using WeatherImage.Utilities.ImageEditor;
 
 namespace WeatherImage.Functions.ProcessImage
 {
-    public class ProcessWeatherImage
+    public class ProcessImage
     {
-        private readonly ILogger<ProcessWeatherImage> _logger;
+        private readonly ILogger<ProcessImage> _logger;
         private readonly BlobServiceClient _blobServiceClient;
         private readonly UnsplashImageService _unsplashImageService;
         private readonly TableClient _tableClient;
 
-        public ProcessWeatherImage(
-            ILogger<ProcessWeatherImage> logger,
+        public ProcessImage(
+            ILogger<ProcessImage> logger,
             BlobServiceClient blobServiceClient,
             UnsplashImageService unsplashImageService,
             TableClient tableClient)
+
         {
             _logger = logger;
             _blobServiceClient = blobServiceClient;
@@ -36,75 +37,62 @@ namespace WeatherImage.Functions.ProcessImage
             _tableClient = tableClient;
         }
 
-        [Function(nameof(ProcessWeatherImage))]
-        public async Task RunAsync([QueueTrigger("weather-image-queue", Connection = "AzureWebJobsStorage")] QueueMessage message)
+        [Function("ProcessImage")]
+        public async Task RunAsync(
+            [QueueTrigger("process-image", Connection = "AzureWebJobsStorage")] QueueMessage imageMessage)
         {
-            try
+            _logger.LogInformation("Processing image from image-processing queue.");
+
+            var jobData = JsonSerializer.Deserialize<JobData>(imageMessage.MessageText);
+            if (jobData == null)
             {
-                _logger.LogInformation("Processing message from weather-image-queue.");
-
-                // Deserialize the message content
-                var jobData = JsonSerializer.Deserialize<JobData>(message.MessageText);
-                if (jobData == null)
-                {
-                    _logger.LogWarning("Deserialized message is null.");
-                    return;
-                }
-
-                // Update Table Storage with job status as "In Progress"
-                await UpdateJobStatusAsync(jobData.JobId, "In Progress");
-
-                // Generate and upload the weather image
-                await GenerateWeatherImageAsync(jobData.Station, jobData.JobId);
-
-                // Update Table Storage with job status as "Completed"
-                await UpdateJobStatusAsync(jobData.JobId, "Completed");
+                _logger.LogWarning("Image process message deserialized to null.");
+                return;
             }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error processing queue message: {ex.Message}");
-            }
+
+            // Update Table Storage with job status as "In Progress"
+            await UpdateJobStatusAsync(jobData.JobId, "In Progress");
+
+            // Generate and upload the weather image
+            var blobUrl = await GenerateWeatherImageAsync(jobData.Station, jobData.JobId);
+
+            // Update Table Storage with job status as "Completed"
+            await UpdateJobStatusAsync(jobData.JobId, "Completed");
+
+            _logger.LogInformation($"Image processing completed. Blob URL: {blobUrl}");
         }
 
         private async Task<string> GenerateWeatherImageAsync(StationMeasurement stationData, string jobId)
         {
             _logger.LogInformation($"Generating weather image for station: {stationData.StationName}");
 
-            // Fetch an Unsplash image to use as the background
+            // Fetch background image
             var imageUrl = await _unsplashImageService.GetRandomImageUrlAsync("netherlands");
             using var imageStream = await new HttpClient().GetStreamAsync(imageUrl);
 
-            // Prepare text overlays
+            // Text overlays
             var textOverlays = new[]
             {
                 ($"Station: {stationData.StationName}", (10f, 40f), 20, "#000000"),
                 ($"Temperature: {stationData.Temperature}°C", (10f, 80f), 20, "#000000")
             };
 
-            // Use ImageHelper to add text to the background image
+            // Add text to image
             using var finalImageStream = ImageEditor.AddTextToImage(imageStream, textOverlays);
 
-            // Upload the final image to Azure Blob Storage
-            string blobContainerName = "weather-image-public";
+            // Upload to Blob Storage with jobId in metadata
             string blobName = $"{stationData.StationName.Replace(" ", "_")}_{Guid.NewGuid()}.png";
-
-            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(blobContainerName);
+            var blobContainerClient = _blobServiceClient.GetBlobContainerClient("weather-image-public");
             await blobContainerClient.CreateIfNotExistsAsync();
 
             var blobClient = blobContainerClient.GetBlobClient(blobName);
-
-            // Set metadata including the jobId
             var metadata = new Dictionary<string, string> { { "jobId", jobId } };
-            
-            // Upload the final image with metadata
-            await blobClient.UploadAsync(finalImageStream, new BlobUploadOptions
-            {
-                Metadata = metadata,
-                HttpHeaders = new BlobHttpHeaders { ContentType = "image/png" }
-            });
 
-            _logger.LogInformation($"Image uploaded successfully as {blobName} in container {blobContainerName}.");
-            return blobClient.Uri.ToString(); 
+            await blobClient.UploadAsync(finalImageStream, overwrite: true);
+            await blobClient.SetMetadataAsync(metadata);
+
+            _logger.LogInformation($"Image uploaded with jobId metadata: {blobName}");
+            return blobClient.Uri.ToString();
         }
 
         private async Task UpdateJobStatusAsync(string jobId, string status)

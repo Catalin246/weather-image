@@ -20,7 +20,8 @@ var host = new HostBuilder()
 
         services.AddHttpClient();
         services.AddSingleton<WeatherDataService>();
-        services.AddSingleton<QueueWriterService>();
+        services.AddSingleton<QueueJobStartService>();
+        services.AddSingleton<QueueProcessImageService>();
         services.AddSingleton<UnsplashImageService>();
         services.AddSingleton(new BlobServiceClient(Environment.GetEnvironmentVariable("AzureWebJobsStorage")));
 

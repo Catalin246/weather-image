@@ -8,25 +8,25 @@ using WeatherImage.Models;
 
 namespace WeatherImage.Services
 {
-    public class QueueWriterService
+    public class QueueJobStartService
     {
         private readonly QueueClient _queueClient;
 
-        public QueueWriterService(IConfiguration configuration)
+        public QueueJobStartService(IConfiguration configuration)
         {
             var connectionString = configuration["AzureWebJobsStorage"];
-            _queueClient = new QueueClient(connectionString, "weather-image-queue");
+            _queueClient = new QueueClient(connectionString, "job-start");
 
             // Ensure the queue exists
             _queueClient.CreateIfNotExists();
         }
 
-        public async Task AddToQueueAsync(JobData jobData)
+        public async Task AddToQueueAsync(WeatherData weatherData)
         {
-            if (jobData == null)
-                throw new ArgumentNullException(nameof(jobData));
+            if (weatherData == null)
+                throw new ArgumentNullException(nameof(weatherData));
 
-            var message = JsonConvert.SerializeObject(jobData);
+            var message = JsonConvert.SerializeObject(weatherData);
             var bytes = Encoding.UTF8.GetBytes(message);
             await _queueClient.SendMessageAsync(Convert.ToBase64String(bytes));
         }

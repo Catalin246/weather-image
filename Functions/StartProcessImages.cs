@@ -7,28 +7,29 @@ using Newtonsoft.Json;
 using WeatherImage.Services;
 using WeatherImage.Models;
 
-namespace WeatherImage.Functions.StartWeatherImageJob
+namespace WeatherImage.Functions.StartProcessImages
 {
-     public class StartWeatherImageJob
+     public class StartProcessImages
     {
         private readonly WeatherDataService _weatherDataService;
-        private readonly QueueWriterService _queueWriterService;
+        private readonly QueueJobStartService _queueJobStartService;
         private readonly ILogger _logger;
 
-        public StartWeatherImageJob(WeatherDataService weatherDataService, QueueWriterService queueWriterService, ILoggerFactory loggerFactory)
+        public StartProcessImages(WeatherDataService weatherDataService, QueueJobStartService queueJobStartService, ILoggerFactory loggerFactory)
         {
             _weatherDataService = weatherDataService;
-            _queueWriterService = queueWriterService;
-            _logger = loggerFactory.CreateLogger<StartWeatherImageJob>();
+            _queueJobStartService = queueJobStartService;
+            _logger = loggerFactory.CreateLogger<StartProcessImages>();
         }
 
-        [Function("StartWeatherImageJob")]
+        [Function("StartProcessImages")]
         public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "start")] HttpRequestData req)
         {
             _logger.LogInformation("Starting weather image job.");
 
             // Get weather data from WeatherDataService
             var weatherData = await _weatherDataService.GetWeatherDataAsync();
+        
             if (weatherData == null)
             {
                 return req.CreateResponse(System.Net.HttpStatusCode.BadRequest);
@@ -36,13 +37,9 @@ namespace WeatherImage.Functions.StartWeatherImageJob
 
             // Generate a unique job ID
             var jobId = Guid.NewGuid().ToString();
+            weatherData.JobId = jobId;
 
-            // Enqueue each station's data
-            foreach (var station in weatherData.Actual.StationMeasurements)
-            {
-                var jobData = new JobData { JobId = jobId, Station = station };
-                await _queueWriterService.AddToQueueAsync(jobData);
-            }
+            await _queueJobStartService.AddToQueueAsync(weatherData);
 
              _logger.LogInformation("Retrieving weather data successfully!");
 

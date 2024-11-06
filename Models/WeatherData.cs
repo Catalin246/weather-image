@@ -3,6 +3,8 @@ namespace WeatherImage.Models
     public class WeatherData
     {
         public required ActualData Actual { get; set; }
+
+        public string? JobId { get; set; }
     }
 
     public class ActualData
