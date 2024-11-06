@@ -1,7 +1,12 @@
 # Start Weather Image Job
 # This endpoint initializes a new weather image generation job.
 
+# Local Enviorment
 POST http://localhost:7071/api/start
+Content-Type: application/json
+
+# Production Enviorment
+POST https://fnappoekk4niakfyi4.azurewebsites.net/api/start?code=BS1op8P1gdYs4GS6gVqFUbO_P4CGqQMsUiYZxNKyaINFAzFue9-JRA%3D%3D
 Content-Type: application/json
 
 # Expected Response:

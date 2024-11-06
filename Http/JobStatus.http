@@ -2,7 +2,12 @@
 # Use this endpoint to check the status of a weather image generation job.
 # Replace {jobId} with the unique ID returned when the job was started.
 
+# Local Enviorment
 GET http://localhost:7071/api/status/{jobId}
+Accept: application/json
+
+# Production Enviorment
+GET https://fnappoekk4niakfyi4.azurewebsites.net/api/status/{jobId}
 Accept: application/json
 
 # Expected Response when job is in progress:
