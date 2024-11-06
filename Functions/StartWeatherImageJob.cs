@@ -48,8 +48,7 @@ namespace WeatherImage.Functions.StartWeatherImageJob
 
             // Return a success response with job ID
             var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
-            // Add the status of the of the jobs (jobs are in progress)
-            await response.WriteAsJsonAsync(new { jobId, statusUrl = $"http://localhost:7071/api/status/{jobId}" });
+            await response.WriteAsJsonAsync(new { jobId, statusUrl = $"/api/status/{jobId}" });
             return response;
         }
     }

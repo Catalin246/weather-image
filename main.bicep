@@ -1,5 +1,5 @@
 @description('The name of the function app that you wish to create.')
-//param appName string = 'fnapp${uniqueString(resourceGroup().id)}'
+//param appName string = 'fnapp${uniqueString(resourceGroup().id)}' // Generate random app naming, however is out of the scoupe here.
 param appName string = 'fnappoekk4niakfyi4'
 
 @description('Storage Account type')

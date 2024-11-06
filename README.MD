@@ -12,9 +12,8 @@ o	Employ QueueTrigger to process the job in the background so the initial call s
         	https://data.buienradar.nl/2.0/feed/json
     	Employ any public api for retrieving an image to write the weather data on. (done) 
         	e.g. https://unsplash.com/developers
-o	Expose a publicly accessible API for fetching the generated images using HttpTriggers.(done) - images url not accessible - all images retured instead     only the generated images (for a specific jobId)
-
-o	Provide HTTP files as API documentation. (in progress)
+o	Expose a publicly accessible API for fetching the generated images using HttpTriggers.(done)
+o	Provide HTTP files as API documentation. (done)
 o	Create a fitting Bicep template (include the queues as well). (done)
 o	Add all files to Azure DevOps repo and add tripleinhollandccd2024@outlook.com 
 to organization and project. (in progress)
@@ -39,13 +38,10 @@ Extra instruction for giving me access:
 4.	If you have created your own azure devops tenant, please invite me to this as well.
 
 TO DO
-- add http file also for production website
-- take only the images related to the job
-- 2nd request put the local url even in the production
+- return only the generated images (for a specific jobId)
 - function app naming random
 - provide README file
-
-!! create a new unsplash app
+- !! create a new unsplash app
 
 ## Deployment
 

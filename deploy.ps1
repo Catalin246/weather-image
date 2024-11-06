@@ -3,7 +3,7 @@ $resourceGroupName = "WeatherImageDemo"
 $location = "westeurope"  # Azure region for the resource group
 $templateFilePath = "./main.bicep"  # Path to your Bicep template file
 $appInsightsLocation = "westeurope"  # Application Insights location
-$functionAppName = "fnappoekk4niakfyi4"  # Name of the Function App
+$functionAppName = "fnappoekk4niakfyi4"  # Name of the Function App / This should be random, however is out of scoupe here.
 
 # Step 1: Create the resource group
 Write-Output "Creating resource group '$resourceGroupName' in location '$location'..."
