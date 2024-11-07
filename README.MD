@@ -5,27 +5,28 @@ A sample of code for writing text on an image can be found here.
 https://github.com/wearetriple/InHolland-CCD/tree/master/2024/samples/ImageEditor
 
 Must
-o	Expose publicly accessible API for requesting a set of fresh images with current weather data using a HttpTrigger. (done)
-o	Employ QueueTrigger to process the job in the background so the initial call stays fast. (done)
-    	Employ Blob Storage to store all generated images and to expose the files. (done)
-    	Employ Buienrader api to get weather station data (done)
-        	https://data.buienradar.nl/2.0/feed/json
-    	Employ any public api for retrieving an image to write the weather data on. (done) 
-        	e.g. https://unsplash.com/developers
+o	Expose publicly accessible API for requesting a set of fresh images with current weather data using a HttpTrigger.(done)
+o	Employ QueueTrigger to process the job in the background so the initial call stays fast.(done)
+	Employ Blob Storage to store all generated images and to expose the files.(done)
+	Employ Buienrader api to get weather station data(done)
+	https://data.buienradar.nl/2.0/feed/json
+	Employ any public api for retrieving an image to write the weather data on.(done)
+	e.g. https://unsplash.com/developers
 o	Expose a publicly accessible API for fetching the generated images using HttpTriggers.(done)
-o	Provide HTTP files as API documentation. (in progress)
-o	Create a fitting Bicep template (include the queues as well). (done)
+
+o	Provide HTTP files as API documentation.(done)
+o	Create a fitting Bicep template (include the queues as well).(done)
 o	Add all files to Azure DevOps repo and add tripleinhollandccd2024@outlook.com 
-to organization and project. (done)
-o	Create a deploy.ps1 script that publishes your code using the dotnet cli, creates the resources in azure using the Bicep template and deploys the function using the azure cli. (done)
+to organization and project.(done)
+o	Create a deploy.ps1 script that publishes your code using the dotnet cli, creates the resources in azure using the Bicep template and deploys the function using the azure cli.(done)
 o	Employ multiple queues one for starting the job and one for writing text on a single image.(done)
-o	Deploy the code to azure and have a working endpoint.(in progress)
+o	Deploy the code to azure and have a working endpoint.(done)
  
 Could
 o	Use SAS token instead of publicly accessible blob storage for fetching finished image directly from Blob.
 o	Build and deploy the code automatically from Azure DevOps.
 o	Use authentication on request API. (Be sure to provide me with credentials)
-o	Provide a status endpoint for fetching progress status and saving status in Table. (done)
+o	Provide a status endpoint for fetching progress status and saving status in Table.(done)
 *Having all “Must” requirements will result in a minimal passing grade, also having “Could” requirements results in a higher grade.
 
 Deadline: Friday 8 November 09:00 AM CET
@@ -37,12 +38,6 @@ Extra instruction for giving me access:
 3.	Add me as administrator to your project (https://dev.azure.com/{organization}/{projectName} /_settings/).
 4.	If you have created your own azure devops tenant, please invite me to this as well.
 
-TO DO
-- provide README file
-- !! create a new unsplash app
-
-- update http
-- deploy code
 
 ## Deployment
 
