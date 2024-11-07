@@ -41,6 +41,9 @@ TO DO
 - provide README file
 - !! create a new unsplash app
 
+- update http
+- deploy code
+
 ## Deployment
 
 To deploy the application, follow these steps:
