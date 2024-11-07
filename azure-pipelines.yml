@@ -11,28 +11,34 @@ variables:
   templateFilePath: './main.bicep'
   appInsightsLocation: 'westeurope'
   functionAppName: 'fnappoekk4niakfyi4' 
-  stages:
-#   - stage: DeployInfrastructure
-#     displayName: "Deploy Azure Resources"
-#     jobs:
-#       - job: DeployResources
-#         displayName: "Create Resource Group and Deploy Bicep Template"
-#         steps:
-#           - task: AzureCLI@2
-#             inputs:
-#               azureSubscription: "WeatherImageConnection" 
-#               scriptType: "ps"
-#               scriptLocation: "inlineScript"
-#               inlineScript: |
-#                 # Step 1: Create the resource group
-#                 Write-Output "Creating resource group '$env:resourceGroupName' in location '$env:location'..."
-#                 az group create --name $env:resourceGroupName --location $env:location
-#                 Write-Output "Resource group '$env:resourceGroupName' created successfully."
 
-#                 # Step 2: Deploy resources using the Bicep template
-#                 Write-Output "Deploying resources to resource group '$env:resourceGroupName' using template '$env:templateFilePath'..."
-#                 az deployment group create --resource-group $env:resourceGroupName --template-file $env:templateFilePath --parameters appInsightsLocation=$env:appInsightsLocation
-#                 Write-Output "Resources deployed successfully in resource group '$env:resourceGroupName'."
+stages:
+  - stage: DeployInfrastructure
+    displayName: "Deploy Azure Resources"
+    jobs:
+      - job: DeployResources
+        displayName: "Create Resource Group and Deploy Bicep Template"
+        steps:
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: "WeatherImageConnection" 
+              scriptType: "ps"
+              scriptLocation: "inlineScript"
+              inlineScript: |
+                # Step 1: Check if the resource group exists
+                $rgExists = $(az group exists --name $env:resourceGroupName)
+                if ($rgExists -eq "false") {
+                    Write-Output "Resource group '$env:resourceGroupName' does not exist. Creating..."
+                    az group create --name $env:resourceGroupName --location $env:location
+                    Write-Output "Resource group '$env:resourceGroupName' created successfully."
+                } else {
+                    Write-Output "Resource group '$env:resourceGroupName' already exists. Skipping creation."
+                }
+
+                # Step 2: Deploy resources using the Bicep template (only if needed)
+                Write-Output "Deploying resources to resource group '$env:resourceGroupName' using template '$env:templateFilePath'..."
+                az deployment group create --resource-group $env:resourceGroupName --template-file $env:templateFilePath --parameters appInsightsLocation=$env:appInsightsLocation
+                Write-Output "Resources deployed successfully in resource group '$env:resourceGroupName'."
 
   - stage: DeployFunctionApp
     displayName: "Publish Function App"
