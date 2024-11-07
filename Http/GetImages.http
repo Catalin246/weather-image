@@ -1,0 +1,20 @@
+# Get Images
+# Use this endpoint to get all the generated images. 
+
+# Local Enviorment
+GET http://localhost:7071/api/images
+Accept: application/json
+
+# Production Enviorment
+GET https://fnappoekk4niakfyi4.azurewebsites.net/api/images
+Accept: application/json
+
+# Expected Response when job is completed:
+# {
+#   "images": [
+#     "http://storageaccount.blob.core.windows.net/weather-image-public/image1.png",
+#     "http://storageaccount.blob.core.windows.net/weather-image-public/image2.png"
+#   ]
+# }
+
+###

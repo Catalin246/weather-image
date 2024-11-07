@@ -13,7 +13,7 @@ o	Employ QueueTrigger to process the job in the background so the initial call s
     	Employ any public api for retrieving an image to write the weather data on. (done) 
         	e.g. https://unsplash.com/developers
 o	Expose a publicly accessible API for fetching the generated images using HttpTriggers.(done)
-o	Provide HTTP files as API documentation. (done)
+o	Provide HTTP files as API documentation. (in progress)
 o	Create a fitting Bicep template (include the queues as well). (done)
 o	Add all files to Azure DevOps repo and add tripleinhollandccd2024@outlook.com 
 to organization and project. (done)

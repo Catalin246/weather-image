@@ -17,6 +17,7 @@ Accept: application/json
 
 # Expected Response when job is completed:
 # {
+#   "status": "Completed"
 #   "images": [
 #     "http://storageaccount.blob.core.windows.net/weather-image-public/image1.png",
 #     "http://storageaccount.blob.core.windows.net/weather-image-public/image2.png"
