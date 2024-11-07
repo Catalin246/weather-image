@@ -53,7 +53,7 @@ stages:
         steps:
           - task: AzureCLI@2
             inputs:
-              azureSubscription: "245ebd34-23fa-4b15-8938-f71c047db6f8"
+              azureSubscription: "WeatherImageConnection"
               scriptType: "ps"
               scriptLocation: "inlineScript"
               inlineScript: |
@@ -77,7 +77,7 @@ stages:
 
           - task: AzureCLI@2
             inputs:
-              azureSubscription: "245ebd34-23fa-4b15-8938-f71c047db6f8"
+              azureSubscription: "WeatherImageConnection"
               scriptType: "ps"
               scriptLocation: "inlineScript"
               inlineScript: |
