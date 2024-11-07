@@ -25,7 +25,7 @@ Could
 o	Use SAS token instead of publicly accessible blob storage for fetching finished image directly from Blob.
 o	Build and deploy the code automatically from Azure DevOps.
 o	Use authentication on request API. (Be sure to provide me with credentials)
-o	Provide a status endpoint for fetching progress status and saving status in Table.
+o	Provide a status endpoint for fetching progress status and saving status in Table. (done)
 *Having all “Must” requirements will result in a minimal passing grade, also having “Could” requirements results in a higher grade.
 
 Deadline: Friday 8 November 09:00 AM CET
