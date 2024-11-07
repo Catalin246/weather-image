@@ -16,7 +16,7 @@ o	Expose a publicly accessible API for fetching the generated images using HttpT
 o	Provide HTTP files as API documentation. (done)
 o	Create a fitting Bicep template (include the queues as well). (done)
 o	Add all files to Azure DevOps repo and add tripleinhollandccd2024@outlook.com 
-to organization and project. (in progress)
+to organization and project. (done)
 o	Create a deploy.ps1 script that publishes your code using the dotnet cli, creates the resources in azure using the Bicep template and deploys the function using the azure cli. (done)
 o	Employ multiple queues one for starting the job and one for writing text on a single image.(done)
 o	Deploy the code to azure and have a working endpoint.(in progress)

@@ -63,7 +63,7 @@ namespace WeatherImage.Functions.JobStatus
             // Return list of image URLs as JSON response
             var response = req.CreateResponse(HttpStatusCode.OK);
             response.Headers.Add("Content-Type", "application/json; charset=utf-8");
-            await response.WriteStringAsync(JsonSerializer.Serialize(new { images = imageUrls }));
+            await response.WriteStringAsync(JsonSerializer.Serialize(new { status = "Completed", images = imageUrls }));
 
             return response;
         }
