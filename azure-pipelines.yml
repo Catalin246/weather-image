@@ -1,66 +1,35 @@
 trigger:
   branches:
     include:
-      - main  # or the branch you want to trigger builds on
-
+      - main  
 pool:
   vmImage: 'windows-latest'
 
 variables:
-  buildConfiguration: 'Release'
   resourceGroupName: 'WeatherImageDemo'
   location: 'westeurope'
   templateFilePath: './main.bicep'
   appInsightsLocation: 'westeurope'
-  functionAppName: 'fnappoekk4niakfyi4'
-
+  functionAppName: 'fnappoekk4niakfyi4' 
 stages:
-  - stage: Build
-    displayName: "Build Function App"
-    jobs:
-      - job: Build
-        displayName: "Build Job"
-        steps:
-          - task: UseDotNet@2
-            inputs:
-              packageType: 'sdk'
-              version: '6.x'  # Adjust to your .NET version if needed
-
-          - task: DotNetCoreCLI@2
-            inputs:
-              command: 'build'
-              projects: '**/*.csproj'
-              arguments: '--configuration $(buildConfiguration)'
-
-          - task: DotNetCoreCLI@2
-            inputs:
-              command: 'publish'
-              publishWebProjects: true
-              arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-              zipAfterPublish: true
-
-          - task: PublishBuildArtifacts@1
-            inputs:
-              pathToPublish: '$(Build.ArtifactStagingDirectory)'
-              artifactName: 'drop'
-
   - stage: DeployInfrastructure
     displayName: "Deploy Azure Resources"
-    dependsOn: Build
     jobs:
-      - job: DeployBicep
-        displayName: "Deploy Bicep Template"
+      - job: DeployResources
+        displayName: "Create Resource Group and Deploy Bicep Template"
         steps:
           - task: AzureCLI@2
             inputs:
-              azureSubscription: "WeatherImageConnection"
+              azureSubscription: "WeatherImageConnection" 
               scriptType: "ps"
               scriptLocation: "inlineScript"
               inlineScript: |
+                # Step 1: Create the resource group
                 Write-Output "Creating resource group '$env:resourceGroupName' in location '$env:location'..."
                 az group create --name $env:resourceGroupName --location $env:location
                 Write-Output "Resource group '$env:resourceGroupName' created successfully."
 
+                # Step 2: Deploy resources using the Bicep template
                 Write-Output "Deploying resources to resource group '$env:resourceGroupName' using template '$env:templateFilePath'..."
                 az deployment group create --resource-group $env:resourceGroupName --template-file $env:templateFilePath --parameters appInsightsLocation=$env:appInsightsLocation
                 Write-Output "Resources deployed successfully in resource group '$env:resourceGroupName'."
@@ -72,15 +41,25 @@ stages:
       - job: PublishFunction
         displayName: "Publish Azure Function App"
         steps:
-          - download: current
-            artifact: drop
+          - task: UseDotNet@2
+            inputs:
+              packageType: 'sdk'
+              version: '6.x'  
+
+          - task: DotNetCoreCLI@2
+            inputs:
+              command: 'publish'
+              publishWebProjects: true
+              arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)'
+              zipAfterPublish: true
 
           - task: AzureCLI@2
             inputs:
-              azureSubscription: "WeatherImageConnection"
+              azureSubscription: "WeatherImageConnection"  
               scriptType: "ps"
               scriptLocation: "inlineScript"
               inlineScript: |
+                # Step 3: Publish the Function App
                 Write-Output "Publishing Function App '$env:functionAppName'..."
                 func azure functionapp publish $env:functionAppName --no-build --publish-local-settings -i $(Pipeline.Workspace)/drop/*.zip
                 Write-Output "Function App '$env:functionAppName' published successfully."
