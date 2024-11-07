@@ -53,7 +53,7 @@ stages:
         steps:
           - task: AzureCLI@2
             inputs:
-              azureSubscription: "<Your-Service-Connection-Name>"
+              azureSubscription: "245ebd34-23fa-4b15-8938-f71c047db6f8"
               scriptType: "ps"
               scriptLocation: "inlineScript"
               inlineScript: |
